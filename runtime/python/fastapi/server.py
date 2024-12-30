@@ -24,7 +24,7 @@ import numpy as np
 ROOT_DIR = os.path.dirname(os.path.abspath(__file__))
 sys.path.append('{}/../../..'.format(ROOT_DIR))
 sys.path.append('{}/../../../third_party/Matcha-TTS'.format(ROOT_DIR))
-from cosyvoice.cli.cosyvoice import CosyVoice2
+from cosyvoice.cli.cosyvoice import CosyVoice2, CosyVoice
 from cosyvoice.utils.file_utils import load_wav
 
 app = FastAPI()
@@ -79,5 +79,12 @@ if __name__ == '__main__':
                         default='iic/CosyVoice-300M',
                         help='local path or modelscope repo id')
     args = parser.parse_args()
-    cosyvoice = CosyVoice2(args.model_dir)
+
+    # Try automatically determine whether CosyVoice2 is used rather than 1
+    cosyvoice2_identifier: str = "CosyVoice2"
+    if cosyvoice2_identifier in args.model_dir:
+        cosyvoice = CosyVoice2(model_dir=args.model_dir, load_jit=True, load_onnx=False, load_trt=False)
+    else:
+        cosyvoice = CosyVoice(args.model_dir)
+
     uvicorn.run(app, host="0.0.0.0", port=args.port)
